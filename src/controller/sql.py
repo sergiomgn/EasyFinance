@@ -1,7 +1,6 @@
 import sqlite3
 
-from databaseI import DbInterface
-
+from controller.databaseI import DbInterface
 from models.user import UserBase
 
 
@@ -31,3 +30,6 @@ class Sql(DbInterface):
         except Exception as err:
             return err
         return None
+
+    async def user_login(self, user: UserBase):
+        pass

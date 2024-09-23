@@ -3,9 +3,10 @@ import logging
 from fastapi import FastAPI
 from fastapi.params import Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasiscCredentials
+from fastapi.security import HTTPBasic, HTTPBasicCredentials, OAuth2PassworRequestForm
 
-from controller.sql import user_exists
+from auth.oauth2 import auth_user, create_token, get_new_refresh_token
+from controller import db
 from models.user import UserBase
 
 app = FastAPI(title="EasyFinance", version="0.0.1")
@@ -18,13 +19,13 @@ logging.basicConfig()
 # User Signup Endpoint
 @app.post("/register")
 async def register_user(
-    credentials: HTTPBasiscCredentials = Depends(security),
+    credentials: HTTPBasicCredentials = Depends(security),
 ) -> JSONResponse:
     """Endpoint that will handle registration of a new user"""
 
     user = UserBase(username=credentials.username, password=credentials.password)
 
-    created_user, err = await user_exists(user)
+    created_user, err = await db.user_exists(user)
 
     if err:
         logging.error(err)
@@ -41,8 +42,24 @@ async def register_user(
     return JSONResponse({"message": "User successfully created"}, status_code=200)
 
 
-# Login user
+# Token
 @app.post("/login")
-async def login_user(credentials: HTTPBasiscCredentials = Depends(security)):
+async def login_user(credentials: OAuth2PassworRequestForm = Depends()):
     """Return JWT token for user future requests"""
-    pass
+    user = auth_user(credentials=UserBase(credentials.username, credentials.password))
+
+    access_token = create_token(data={"sub": user.username}, token_type="TOKEN")
+    refresh_token = create_token(data={"sub": user.username}, token_type="REFRESH")
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+@app.post("/refresh")
+async def refresh_token(refresh_token: str):
+    new_access_token = get_new_refresh_token(refresh_token)
+
+    return {"access_token": new_access_token, "token_type": "bearer"}

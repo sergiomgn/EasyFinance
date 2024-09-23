@@ -18,7 +18,7 @@ class Expense(BaseModel):
     category: str
     ammount: float
     date: date
-    tags = List[str] = []
+    tags: List[str] = []
     description: str = ""
     recurring: bool = False
     due_date: date = None

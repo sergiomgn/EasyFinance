@@ -13,5 +13,5 @@ class DbInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_user_by_userdata(self, user: UserBase) -> (int, Exception):
+    async def user_login(self, user: UserBase) -> (int, Exception):
         pass

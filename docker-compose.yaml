@@ -1,0 +1,11 @@
+services:
+  easy-finance-api:
+    container_name: easy-finance-api
+    build:
+      context: /home/sergioneves/Personal/EasyFinance/src
+    volumes:
+      - .:/app/
+      - ./database/:/database/
+    ports:
+      - "6363:6363"
+    restart: unless-stopped
